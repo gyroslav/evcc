@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/elliptic"
-	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/tls"
 	"fmt"
@@ -27,7 +26,6 @@ import (
 
 	"github.com/andig/evcc/hems/eebus"
 	"github.com/andig/evcc/hems/eebus/ship"
-	"github.com/denisbrodbeck/machineid"
 	"github.com/gorilla/websocket"
 	"github.com/grandcat/zeroconf"
 )
@@ -42,7 +40,8 @@ func discoverDNS(results <-chan *zeroconf.ServiceEntry) {
 	for entry := range results {
 		log.Println("mDNS:", entry.HostName, entry.AddrIPv4, entry.Text)
 
-		if entry.Instance == zeroconfInstance {
+		// if entry.Instance == zeroconfInstance {
+		if true {
 			connectService(entry)
 			continue
 		}
@@ -53,7 +52,7 @@ func connectService(entry *zeroconf.ServiceEntry) {
 	ss, err := eebus.NewFromDNSEntry(entry)
 	if err == nil {
 		log.Printf("%s: client connect", entry.HostName)
-		err = ss.Connect()
+		err = ss.Connect(mdnsID.String())
 	}
 
 	if err == nil {
@@ -189,18 +188,7 @@ const (
 	keyFile    = "evcc.key"
 )
 
-func uniqueID() ([]byte, error) {
-	id, err := machineid.ID()
-	if err != nil {
-		return nil, err
-	}
-
-	mac := hmac.New(sha1.New, []byte(id))
-	mac.Write([]byte(id))
-	sum := mac.Sum(nil)
-
-	return sum[:8], nil
-}
+var mdnsID = eebus.UniqueID{Prefix: "evcc"}
 
 func main() {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
@@ -226,19 +214,13 @@ func main() {
 	}
 	ski := fmt.Sprintf("%0x", leaf.SubjectKeyId)
 
-	id, err := uniqueID()
-	if err != nil {
-		log.Fatal(err)
-	}
-	mdnsID := fmt.Sprintf("evcc-%0x", id)
-
-	service, err := eebus.NewServer(fmt.Sprintf(":%d", serverPort), cert, mdnsID)
+	service, err := eebus.NewServer(fmt.Sprintf(":%d", serverPort), cert, mdnsID.String())
 	if err != nil {
 		log.Fatal(err)
 	}
 	_ = service
 
-	log.Printf("mDNS: announcing id: %s ski: %s", mdnsID, ski)
+	log.Printf("mDNS: announcing id: %s ski: %s", mdnsID.String(), ski)
 
 	// Discover all services on the network (e.g. _workstation._tcp)
 	resolver, err := zeroconf.NewResolver(nil)
@@ -247,7 +229,7 @@ func main() {
 	}
 
 	server, err := zeroconf.Register(zeroconfInstance, zeroconfType, zeroconfDomain, serverPort, []string{
-		"txtvers=1", "id=" + mdnsID, "path=/ship/", "ski=" + ski, "register=true", "brand=evcc", "model=evcc", "type=EnergyManagementSystem",
+		"txtvers=1", "id=" + mdnsID.String(), "path=/ship/", "ski=" + ski, "register=true", "brand=evcc", "model=evcc", "type=EnergyManagementSystem",
 	}, nil)
 	if err != nil {
 		log.Fatal("mDNS: failed registering service:", err)

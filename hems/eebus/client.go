@@ -69,7 +69,7 @@ func baseURIFromDNS(zc *zeroconf.ServiceEntry) string {
 var Connector func(uri string) (*websocket.Conn, error)
 
 // Connect connects to the service endpoint and performs handshake
-func (ss *Service) Connect() error {
+func (ss *Service) Connect(accessMethod string) error {
 	conn, err := Connector(ss.URI)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (ss *Service) Connect() error {
 
 	sc := &ship.Client{
 		Log:    log.New(&writer{os.Stdout, "2006/01/02 15:04:05 "}, "[client] ", 0),
-		Local:  ship.Service{Pin: "", Methods: ""},
+		Local:  ship.Service{Pin: "", Methods: accessMethod},
 		Remote: ship.Service{Pin: ""},
 	}
 
