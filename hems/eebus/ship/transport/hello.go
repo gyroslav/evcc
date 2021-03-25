@@ -2,7 +2,6 @@ package transport
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/andig/evcc/hems/eebus/ship/message"
@@ -11,19 +10,21 @@ import (
 
 // Hello is the common hello exchange
 func (c *Transport) Hello() error {
+	waitMs := uint(message.CmiTimeout / time.Millisecond)
+
 	// SME_HELLO_STATE_READY_INIT
-	if err := c.WriteJSON(message.CmiTypeControl, ship.CmiConnectionHello{
+	err := c.WriteJSON(message.CmiTypeControl, ship.CmiConnectionHello{
 		ConnectionHello: ship.ConnectionHello{
-			Phase: ship.ConnectionHelloPhaseTypeReady,
+			Phase:   ship.ConnectionHelloPhaseTypeReady,
+			Waiting: &waitMs,
 		},
-	}); err != nil {
-		return fmt.Errorf("hello: %w", err)
-	}
+	})
 
 	timer := time.NewTimer(message.CmiTimeout)
-	for {
+	for err == nil {
 		// SME_HELLO_STATE_READY_LISTEN
-		msg, err := c.ReadMessage(timer.C)
+		var msg interface{}
+		msg, err = c.ReadMessage(timer.C)
 		if err != nil {
 			if errors.Is(err, ErrTimeout) {
 				// SME_HELLO_STATE_READY_TIMEOUT
@@ -45,7 +46,7 @@ func (c *Transport) Hello() error {
 				return nil
 
 			case ship.ConnectionHelloPhaseTypeAborted:
-				return errors.New("hello: aborted")
+				err = errors.New("hello: aborted")
 
 			case ship.ConnectionHelloPhaseTypePending:
 				if hello.ProlongationRequest != nil && *hello.ProlongationRequest {
@@ -57,7 +58,9 @@ func (c *Transport) Hello() error {
 			err = errors.New("hello: remote closed")
 
 		default:
-			return errors.New("hello: invalid type")
+			err = errors.New("hello: invalid type")
 		}
 	}
+
+	return err
 }

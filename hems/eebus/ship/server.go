@@ -34,7 +34,7 @@ func (c *Server) init() error {
 
 	// CMI_STATE_SERVER_EVALUATE
 	init := []byte{message.CmiTypeInit, 0x00}
-	if bytes.Compare(init, msg) != 0 {
+	if !bytes.Equal(init, msg) {
 		return fmt.Errorf("init: invalid response")
 	}
 

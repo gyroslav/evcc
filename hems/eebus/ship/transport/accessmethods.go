@@ -16,7 +16,9 @@ func (c *Transport) AccessMethodsRequest(methods string) (string, error) {
 
 	for err == nil {
 		timer := time.NewTimer(CmiReadWriteTimeout)
-		msg, err := c.ReadMessage(timer.C)
+
+		var msg interface{}
+		msg, err = c.ReadMessage(timer.C)
 		if err != nil {
 			break
 		}

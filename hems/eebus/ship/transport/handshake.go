@@ -27,7 +27,7 @@ func (c *Transport) HandshakeReceiveSelect() error {
 			err = errors.New("handshake: invalid format")
 		}
 
-		return nil
+		return err
 
 	case ship.ConnectionClose:
 		err = errors.New("handshake: remote closed")

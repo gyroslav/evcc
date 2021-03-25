@@ -42,7 +42,7 @@ func (c *Client) init() error {
 	}
 
 	// CMI_STATE_CLIENT_EVALUATE
-	if bytes.Compare(init, msg) != 0 {
+	if !bytes.Equal(init, msg) {
 		return fmt.Errorf("init: invalid response")
 	}
 

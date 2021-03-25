@@ -33,7 +33,8 @@ func (c *Transport) Close() error {
 
 	timer := time.NewTimer(message.CmiCloseTimeout)
 	for err == nil {
-		msg, err := c.ReadMessage(timer.C)
+		var msg interface{}
+		msg, err = c.ReadMessage(timer.C)
 		if err != nil {
 			break
 		}

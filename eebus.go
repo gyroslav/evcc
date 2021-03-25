@@ -40,12 +40,12 @@ const (
 
 func discoverDNS(results <-chan *zeroconf.ServiceEntry) {
 	for entry := range results {
+		log.Println("mDNS:", entry.HostName, entry.AddrIPv4, entry.Text)
+
 		if entry.Instance == zeroconfInstance {
 			connectService(entry)
 			continue
 		}
-
-		log.Println("mDNS:", entry.HostName, entry.ServiceName(), entry.Text)
 	}
 }
 
