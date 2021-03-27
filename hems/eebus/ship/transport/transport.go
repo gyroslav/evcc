@@ -87,6 +87,7 @@ func (c *Transport) readPump() {
 			typ, b, err := c.conn.ReadMessage()
 			if err == nil {
 				if len(b) > 2 {
+					b = bytes.TrimSuffix(b, []byte{0x00}) // workaround
 					c.log().Println("recv:", string(b))
 				}
 

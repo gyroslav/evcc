@@ -2,6 +2,8 @@
 package ship
 
 import (
+	"encoding/json"
+
 	"github.com/andig/evcc/hems/eebus/util"
 )
 
@@ -139,9 +141,9 @@ type CmiData struct {
 
 // Data element
 type Data struct {
-	Header    HeaderType     `json:"header"`
-	Payload   string         `json:"payload"`
-	Extension *ExtensionType `json:"extension,omitempty"`
+	Header    HeaderType      `json:"header"`
+	Payload   json.RawMessage `json:"payload"`
+	Extension *ExtensionType  `json:"extension,omitempty"`
 }
 
 // MarshalJSON is the SHIP serialization marshaller

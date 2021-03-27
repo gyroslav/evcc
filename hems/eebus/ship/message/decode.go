@@ -83,6 +83,11 @@ func Decode(b []byte) (interface{}, error) {
 		err := json.Unmarshal(raw, &res)
 		return res, err
 
+	case "data":
+		res := ship.Data{}
+		err := json.Unmarshal(raw, &res)
+		return res, err
+
 	default:
 		return nil, errors.New("invalid type")
 	}
