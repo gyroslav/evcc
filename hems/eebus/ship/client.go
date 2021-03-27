@@ -98,7 +98,7 @@ func (c *Client) dataHandshake() error {
 	hs := ship.CmiData{
 		Data: ship.Data{
 			Header: ship.HeaderType{
-				ProtocolId: ship.ProtocolIdType("ee1.0"),
+				ProtocolId: ship.ProtocolIdType(message.ProtocolID),
 			},
 			Payload: json.RawMessage(discovery),
 		},
@@ -116,7 +116,7 @@ func (c *Client) dataHandshake() error {
 			hs := ship.CmiData{
 				Data: ship.Data{
 					Header: ship.HeaderType{
-						ProtocolId: ship.ProtocolIdType("ee1.0"),
+						ProtocolId: ship.ProtocolIdType(message.ProtocolID),
 					},
 					Payload: json.RawMessage(services),
 				},
